@@ -1,3 +1,7 @@
 machine:
   python:
-    version: pypy-3.6.2
+    version: 3.5.0
+
+dependencies:
+  pre:
+    - yes w | pip install -r requirements.txt
