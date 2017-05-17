@@ -1,9 +1,10 @@
 import json
+from trinket.network.network import Network
 class Packet():
 
     def __init__(self):
         self.IDENTIFIER = 0x001
-        self.ERROR = ""
+        self.ERROR = Network.TYPE_ERROR_EMPTY
         self.PASSWORD = ""
         self.DATA = {}
         self.REASON = ""

@@ -29,7 +29,7 @@ class TCPServerSocket():
                             continue
                         if j == "null" or j == "NULL":
                             continue
-                        pckt = DecodedPacket(json.loads(j))
+                        pckt = DecodedPacket(json.loads(j.strip()))
                         if pckt.getID() == Network.TYPE_PACKET_DUMMY:
                             pk = Packet()
                             pk.IDENTIFIER = 0x01
@@ -87,7 +87,7 @@ class TCPServerSocket():
     def listen(self):
         while self.ENABLED:
             conn, addr = self.s.accept()
-            data = json.loads(conn.recv(1024))
+            data = json.loads(conn.recv(1024).strip())
             pckt = DecodedPacket(data)
             if pckt.getID() == Network.TYPE_PACKET_LOGIN:
                 pwd = pckt.get('password')
@@ -95,7 +95,6 @@ class TCPServerSocket():
                     pk = Packet()
                     pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
                     pk.DATA = True
-                    pk.ERROR = ""
                     conn.send(pk.encode())
                     self.CLIENTS[data["serverId"]] = conn
                     TrinketLogger.debug("Connection from " + str(addr) + " accepted")
