@@ -11,7 +11,6 @@ class Packet():
         self.SELECTION = 10001101
         self.PROTOCOL = '1.0.0'
 
-
     def encode(self):
         arr = {"id": self.IDENTIFIER, "error": self.ERROR, "password": self.PASSWORD, "data": self.DATA, "reason": self.REASON, "chat": self.CHAT, "selection": self.SELECTION, "protocol": self.PROTOCOL}
         return json.dumps(arr).encode()

@@ -1,12 +1,9 @@
-import os, logging
-import json
-import socket
+import os, logging, sys
 import threading
 import time
-import pprint
-from time import sleep
 from trinket.network.tcpserversocket import TCPServerSocket
 from trinket.threads.commandreader import CommandReader
+from trinket.utils.trinketlogger import TrinketLogger
 
 class Trinket():
 
@@ -18,26 +15,25 @@ class Trinket():
             continue
 
     def start(self):
+        dir = os.path.dirname(os.path.realpath(sys.argv[0]))
         tm = time.time()
-        print("Trinket Server v" + self.VERSION + " protocol version " + self.PROTOCOL_VERSION)
-        print("Attempting to open server on " + self.HOST + ":" + str(self.PORT))
+        TrinketLogger.info("Trinket Server v" + self.VERSION + " protocol version " + self.PROTOCOL_VERSION)
+        TrinketLogger.info("Attempting to open server on " + self.HOST + ":" + str(self.PORT))
 
-        TCPServerSocket(self.HOST, self.PORT, self.LOGGER)
-        threading.Thread(target=CommandReader.listen()).start()
+        self.SOCKET = TCPServerSocket(self.HOST, self.PORT, self.LOGGER, self.PASSWORD)
+        CommandReader(self)
 
         start = time.time() - tm
         print("Started in " + str(round(start, 3)) + " seconds")
 
         self.run()
 
-    def getProtocol(self):
-        return self.PROTOCOL_VERSION
-
-    def __init__(self):
+    def __init__(self, host, port, password):
         self.SERVER = False
-        self.HOST = '0.0.0.0'
-        self.PORT = 33657
+        self.HOST = host
+        self.PORT = port
         self.BUFFER = 1024
+        self.PASSWORD = password
 
         self.VERSION = '0.1.7'
         self.PROTOCOL_VERSION = '1.0.0'
@@ -46,6 +42,7 @@ class Trinket():
         self.THREADS = list()
 
         self.ENABLED = True
+        self.SOCKET = ""
 
         self.LOGGER = logging.Logger
         self.start()
