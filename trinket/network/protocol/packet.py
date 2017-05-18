@@ -10,20 +10,24 @@ class Packet():
         self.REASON = ""
         self.CHAT = ""
         self.SELECTION = 10001101
-        self.PROTOCOL = '1.0.0'
+        self.PROTOCOL = Network.PROTOCOL
 
     def encode(self):
         arr = {"id": self.IDENTIFIER, "error": self.ERROR, "password": self.PASSWORD, "data": self.DATA, "reason": self.REASON, "chat": self.CHAT, "selection": self.SELECTION, "protocol": self.PROTOCOL}
-        return json.dumps(arr).encode()
+        return json.dumps(arr).ljust(1024, ' ').encode()
 
 class DecodedPacket():
 
     def __init__(self, data):
+        self.DATA = data
         self.IDENTIFIER = data["id"]
-        self.ARRAY = data
 
     def getID(self):
         return self.IDENTIFIER
 
     def get(self, index):
-        return self.ARRAY[index]
+        return self.DATA[index]
+
+    def getAll(self):
+        return self.DATA
+

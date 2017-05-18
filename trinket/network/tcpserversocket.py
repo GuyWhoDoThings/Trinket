@@ -10,7 +10,6 @@ from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
 
-
 class TCPServerSocket():
 
     def getLogger(self):
@@ -27,12 +26,10 @@ class TCPServerSocket():
                             continue
                         if j == "":
                             continue
-                        if j == "null" or j == "NULL":
-                            continue
                         pckt = DecodedPacket(json.loads(j.strip()))
                         if pckt.getID() == Network.TYPE_PACKET_DUMMY:
                             pk = Packet()
-                            pk.IDENTIFIER = 0x01
+                            pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
                             c.send(pk.encode())
                             del pk
                             time.sleep(1)
@@ -67,8 +64,6 @@ class TCPServerSocket():
                                 server.send(pk.encode())
                             except Exception:
                                 continue
-                        else:
-                            pprint.pprint(pckt)
                     except socket.error:
                         continue
             except RuntimeError:
@@ -91,13 +86,22 @@ class TCPServerSocket():
             pckt = DecodedPacket(data)
             if pckt.getID() == Network.TYPE_PACKET_LOGIN:
                 pwd = pckt.get('password')
+                if data["serverId"] in self.CLIENTS:
+                    pk = Packet()
+                    pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
+                    pk.DATA = False
+                    pk.ERROR = Network.TYPE_ERROR_SERVER_ID
+                    conn.send(pk.encode())
+                    TrinketLogger.error("Connection " + str(addr) + " attempted to login with registered serverID")
+                    continue
                 if pwd == self.PASSWORD:
                     pk = Packet()
                     pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
                     pk.DATA = True
+                    pk.ERROR = Network.TYPE_ERROR_EMPTY
                     conn.send(pk.encode())
                     self.CLIENTS[data["serverId"]] = conn
-                    TrinketLogger.debug("Connection from " + str(addr) + " accepted")
+                    TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
                     continue
                 else:
                     pk = Packet()
@@ -129,8 +133,9 @@ class TCPServerSocket():
             threading.Thread(target=self.clientlisten).start()
 
     def stop(self):
-        for c in self.CLIENTS:
+        for sid in self.CLIENTS:
             try:
+                c = self.CLIENTS[sid]
                 pk = Packet()
                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
                 pk.REASON = Network.TYPE_DISCONNECT_FORCED

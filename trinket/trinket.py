@@ -1,7 +1,9 @@
 import os, logging, sys
 import threading
 import time
+
 os.chdir(os.path.realpath(sys.argv[0]).replace("\startup.py", ""))
+
 from trinket.network.tcpserversocket import TCPServerSocket
 from trinket.threads.commandreader import CommandReader
 from trinket.utils.trinketlogger import TrinketLogger
