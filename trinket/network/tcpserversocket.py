@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import pprint
+import sys
 import socket
 import threading
 import time
@@ -136,7 +137,7 @@ class TCPServerSocket():
             self.s.bind((self.HOST, self.PORT))
         except Exception as e:
             TrinketLogger.error("FAILED TO BIND TO PORT! Perhaps another server is running on the port?")
-            os._exit(1)
+            sys.exit()
         finally:
             self.s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             self.s.listen(5)

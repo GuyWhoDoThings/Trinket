@@ -23,3 +23,7 @@ class TrinketLogger:
     @staticmethod
     def debug(msg):
         TrinketLogger.log(msg, "DEBUG", Color.OKBLUE, "Trinket")
+
+    @staticmethod
+    def typed(msg):
+        TrinketLogger.log(msg, "TYPED", Color.GREEN, "Trinket")

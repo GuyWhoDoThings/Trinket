@@ -12,7 +12,7 @@ class CommandReader():
         while self.TRINKET.ENABLED:
             try:
                 cmd = str(input("")).strip()
-                if cmd == "stop" or cmd == "close":
+                if cmd == "stop" or cmd == "close" or cmd == "shutdown":
                     TrinketLogger.warning("Stopping server...")
                     sys.exit()
                 else:
