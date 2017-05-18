@@ -1,4 +1,4 @@
-# Trinket
+# Trinket  [![CircleCI](https://circleci.com/gh/TransendStudios/Trinket/tree/master.svg?style=svg)](https://circleci.com/gh/TransendStudios/Trinket/tree/master)
 Trinket is a multi-server management system for MCPE servers.
 
 ### Installation
