@@ -19,17 +19,16 @@ class Trinket():
 
     def start(self):
         dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-        tm = time.time()
         TrinketLogger.info("Trinket Server v" + self.VERSION + " protocol version " + self.PROTOCOL_VERSION)
         TrinketLogger.info("Attempting to open server on " + self.HOST + ":" + str(self.PORT))
 
         self.SOCKET = TCPServerSocket(self.HOST, self.PORT, self.LOGGER, self.PASSWORD)
-        CommandReader(self)
+        self.COMMAND = CommandReader(self)
+        self.ENABLED = False
 
-        start = time.time() - tm
+    def finish(self):
+        start = time.time() - self.tm
         print("Started in " + str(round(start, 3)) + " seconds")
-
-        self.run()
 
     def __init__(self, host, port, password):
         self.SERVER = False
@@ -46,6 +45,8 @@ class Trinket():
 
         self.ENABLED = True
         self.SOCKET = ""
+        self.COMMAND = ""
+        self.tm = time.time()
 
         self.LOGGER = logging.Logger
         self.start()

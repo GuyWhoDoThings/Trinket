@@ -5,17 +5,19 @@ class CommandReader():
 
     def __init__(self, trinket):
         self.TRINKET = trinket
+        self.TRINKET.finish()
         threading.Thread(target=self.listen()).start()
 
     def listen(self):
-        while True:
-            cmd = str(input("")).strip()
-            if cmd == "stop" or cmd == "close":
-                TrinketLogger.warning("Stopping server...")
-                self.TRINKET.SOCKET.stop()
-                os._exit(0)
+        while self.TRINKET.ENABLED:
+            try:
+                cmd = str(input("")).strip()
+                if cmd == "stop" or cmd == "close":
+                    TrinketLogger.warning("Stopping server...")
+                    os._exit(0)
+                else:
+                    TrinketLogger.info("Unknown Command")
+                    continue
+            except SystemExit:
                 return
-            else:
-                TrinketLogger.info("Unknown Command")
-                continue
 
