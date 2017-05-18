@@ -1,12 +1,14 @@
-import os, logging, sys
-import threading
+import os, sys
 import time
+import logging
 
 os.chdir(os.path.realpath(sys.argv[0]).replace("\startup.py", ""))
 
 from trinket.network.tcpserversocket import TCPServerSocket
 from trinket.threads.commandreader import CommandReader
 from trinket.utils.trinketlogger import TrinketLogger
+from trinket.network.network import Network
+from trinket.network.protocol.packet import Packet
 
 class Trinket():
 
@@ -26,9 +28,19 @@ class Trinket():
         self.COMMAND = CommandReader(self)
         self.ENABLED = False
 
+        TrinketLogger.info("Disconnecting all clients...")
+        for sid in self.SOCKET.CLIENTS:
+            c = self.SOCKET.CLIENTS[sid]
+            pk = Packet()
+            pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
+            try:
+                c.send(pk.encode())
+            except c.error:
+                continue
+
     def finish(self):
         start = time.time() - self.tm
-        print("Started in " + str(round(start, 3)) + " seconds")
+        TrinketLogger.info("Started in " + str(round(start, 3)) + " seconds")
 
     def __init__(self, host, port, password):
         self.SERVER = False
