@@ -91,6 +91,7 @@ class TCPServerSocket():
                                     tmp = self.CLIENTS[pckt.get("to")]
                                     tmp.send(pk.encode())
                                     continue
+                                TrinketLogger.info(str(pckt.get("data")))
                                 for t in self.CLIENTS:
                                     if t == serverId:
                                         continue
