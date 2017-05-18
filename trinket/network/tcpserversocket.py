@@ -1,3 +1,18 @@
+"""
+$$$$$$$$\        $$\           $$\                  $$\
+\__$$  __|       \__|          $$ |                 $$ |
+   $$ | $$$$$$\  $$\ $$$$$$$\  $$ |  $$\  $$$$$$\ $$$$$$\
+   $$ |$$  __$$\ $$ |$$  __$$\ $$ | $$  |$$  __$$\\_$$  _|
+   $$ |$$ |  \__|$$ |$$ |  $$ |$$$$$$  / $$$$$$$$ | $$ |
+   $$ |$$ |      $$ |$$ |  $$ |$$  _$$<  $$   ____| $$ |$$\
+   $$ |$$ |      $$ |$$ |  $$ |$$ | \$$\ \$$$$$$$\  \$$$$  |
+   \__|\__|      \__|\__|  \__|\__|  \__| \_______|  \____/
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU Lesser General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+"""
 import json
 import logging
 import os
@@ -110,7 +125,6 @@ class TCPServerSocket():
                         TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
                         pk = Packet()
                         pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
-                        pk.DATA = True
                         pk.ERROR = Network.TYPE_ERROR_EMPTY
                         conn.send(pk.encode())
                         continue
