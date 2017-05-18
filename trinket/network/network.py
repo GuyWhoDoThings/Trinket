@@ -17,6 +17,9 @@ class Network:
 
     TYPE_PACKET_UNKNOWN = 00
 
+    TYPE_PACKET_PING = "ping"
+    TYPE_PACKET_PONG = "pong"
+
     TYPE_PACKET_DUMMY = 1
 
     TYPE_PACKET_DATA_REQUEST = 37
