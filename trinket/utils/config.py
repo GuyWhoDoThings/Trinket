@@ -1,6 +1,6 @@
 import os, sys
 import json
-import secrets
+import random
 class Config():
 
     @staticmethod
@@ -15,6 +15,6 @@ class Config():
             print("Please input the following.")
             host = input("Host: ")
             port = input("Port: ")
-            config = {"host": host, "port": int(port), "password": secrets.token_hex(8)}
+            config = {"host": host, "port": int(port), "password": random.randint(1,9999999)}
             target.write(json.dumps(config, ensure_ascii=False, indent=4, sort_keys=True))
             return config
