@@ -36,6 +36,7 @@ class Trinket():
 
     def start(self):
         dir = os.path.dirname(os.path.realpath(sys.argv[0]))
+
         TrinketLogger.info("Trinket Server v" + self.VERSION + " protocol version " + self.PROTOCOL_VERSION)
         TrinketLogger.info("Attempting to open server on " + self.HOST + ":" + str(self.PORT))
 

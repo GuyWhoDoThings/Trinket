@@ -15,21 +15,26 @@ $$$$$$$$\        $$\           $$\                  $$\
 """
 import json
 import logging
-import os
-import pprint
 import sys
 import socket
 import threading
-import time
-
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
 
 class TCPServerSocket():
 
-    def getLogger(self):
-        return self.LOGGER
+    def getClientDataAll(self):
+        array = list()
+        for c in self.CLIENTS:
+            array.append(c)
+        return array
+
+    def getClientList(self):
+        array = dict()
+        for c in self.CLIENTS:
+            array[c] = self.INFO[c]
+        return array
 
     def clientlisten(self):
         while self.ENABLED:
@@ -41,46 +46,59 @@ class TCPServerSocket():
                             j = c.recv(1024)
                             if not j:
                                 continue
-                            if j == "":
+                            if len(j) != 1024:
                                 continue
                             pckt = DecodedPacket(json.loads(j.strip()))
+                            if pckt.get("protocol") != Network.PROTOCOL:
+                                pk = Packet()
+                                pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
+                                c.send(pk.encode())
+                                TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
                             if pckt.getID() == Network.TYPE_PACKET_DUMMY:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
                                 c.send(pk.encode())
                                 del pk
-                                time.sleep(1)
+                                pk = Packet()
+                                pk.IDENTIFIER = Network.TYPE_PACKET_INFO
+                                pk.DATA = self.getClientDataAll()
                             elif pckt.getID() == Network.TYPE_PACKET_DISCONNECT:
                                 del self.CLIENTS[serverId]
                                 TrinketLogger.debug("Client " + str(c.getpeername()) + " disconnected")
-                            elif pckt.getID() == Network.TYPE_PACKET_DATA_REQUEST:
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_DATA_SEND
-                                if pckt.get("data")["type"] == Network.TYPE_DATA_CLIENTLIST:
-                                    pk.DATA = self.getClientList()
-                                else:
-                                    continue
-                                c.send(pk.encode())
-                            elif pckt.getID() == Network.TYPE_PACKET_DATA_SEND:
-                                if pckt.get("data") == Network.TYPE_DATA_CHAT:
-                                    pk = Packet()
-                                    pk.IDENTIFIER = Network.TYPE_PACKET_DATA_SEND
-                                    pk.CHAT = pckt.get("chat")
-                                    for sid in self.CLIENTS:
-                                        cl = self.CLIENTS[sid]
-                                        if cl == c:
-                                            continue
-                                        c.send(pk.encode())
-                            elif pckt.getID() ==  Network.TYPE_PACKET_COMMAND_EXECUTE:
-                                try:
-                                    data = pckt.get("data")
-                                    server = self.CLIENTS[data["id"]]
+                            elif pckt.getID() == Network.TYPE_PACKET_COMMAND:
+                                cmd = pckt.get("data")
+                                to = pckt.get("to")
+                                if to in self.CLIENTS:
                                     pk = Packet()
                                     pk.IDENTIFIER = Network.TYPE_PACKET_COMMAND_EXECUTE
-                                    pk.DATA = data["command"]
-                                    server.send(pk.encode())
-                                except Exception:
+                                    pk.DATA = cmd
+                                    self.CLIENTS[to].send(pk.encode())
+                                else:
                                     continue
+                            elif pckt.getID() == Network.TYPE_PACKET_COMMAND_EXECUTE:
+                                continue
+                            elif pckt.getID() == Network.TYPE_PACKET_LOGIN:
+                                continue
+                            elif pckt.getID() == Network.TYPE_PACKET_CHAT:
+                                if pckt.get("data") == Network.TYPE_STRING_EMPTY:
+                                    continue
+                                if str(pckt.get("data")) == "":
+                                    continue
+                                pk = Packet()
+                                pk.IDENTIFIER = Network.TYPE_PACKET_CHAT
+                                pk.DATA = pckt.get("data")
+                                if pckt.get("to") in self.CLIENTS:
+                                    tmp = self.CLIENTS[pckt.get("to")]
+                                    tmp.send(pk.encode())
+                                    continue
+                                TrinketLogger.info(str(pckt.get("data")))
+                                for t in self.CLIENTS:
+                                    if t == serverId:
+                                        continue
+                                    tmp = self.CLIENTS[t]
+                                    tmp.send(pk.encode())
+                            elif pckt.getID() == Network.TYPE_PACKET_INFO_SEND:
+                                self.INFO[serverId] = pckt.get("data")
                         except socket.error:
                             continue
                 except RuntimeError:
@@ -89,15 +107,8 @@ class TCPServerSocket():
                 return
 
 
-    def setEnabled(self, bool):
-        self.ENABLED = bool
-
-    def getClientList(self):
-        cl = dict()
-        for id in self.CLIENTS:
-            sk = self.CLIENTS[id]
-            cl[id] = [id, sk.getpeername()]
-        return str(cl)
+    def setEnabled(self, value):
+        self.ENABLED = value
 
     def listen(self):
         while self.ENABLED:
@@ -122,10 +133,11 @@ class TCPServerSocket():
                         pk.ERROR = Network.TYPE_ERROR_EMPTY
                         conn.send(pk.encode())
                         self.CLIENTS[data["serverId"]] = conn
+                        data = pckt.get("data")
+                        self.INFO[str(pckt.get("serverId"))] = data
                         TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
                         pk = Packet()
                         pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
-                        pk.ERROR = Network.TYPE_ERROR_EMPTY
                         conn.send(pk.encode())
                         continue
                     else:
@@ -139,17 +151,18 @@ class TCPServerSocket():
             except (KeyboardInterrupt, SystemExit):
                 return
 
-    def __init__(self, HOST, PORT, logger: logging.Logger, password):
+    def __init__(self, host, port, logger: logging.Logger, password):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.HOST = HOST
-        self.PORT = PORT
+        self.HOST = host
+        self.PORT = port
         self.PASSWORD = password
         self.CLIENTS = dict()
+        self.INFO = dict()
         self.LOGGER = logger
         self.ENABLED = True
         try:
             self.s.bind((self.HOST, self.PORT))
-        except Exception as e:
+        except self.s.error:
             TrinketLogger.error("FAILED TO BIND TO PORT! Perhaps another server is running on the port?")
             sys.exit()
         finally:
@@ -167,5 +180,5 @@ class TCPServerSocket():
                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
                 pk.REASON = Network.TYPE_DISCONNECT_FORCED
                 c.send(pk.encode())
-            except Exception as e:
+            except RuntimeError:
                 continue

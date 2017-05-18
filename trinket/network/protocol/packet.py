@@ -20,15 +20,15 @@ class Packet():
     def __init__(self):
         self.IDENTIFIER = 0x001
         self.ERROR = Network.TYPE_ERROR_EMPTY
-        self.PASSWORD = ""
-        self.DATA = {}
-        self.REASON = ""
-        self.CHAT = ""
-        self.SELECTION = 10001101
+        self.PASSWORD = Network.TYPE_STRING_EMPTY
+        self.DATA = Network.TYPE_DATA_EMPTY
+        self.REASON = Network.TYPE_DATA_EMPTY
+        self.CHAT = Network.TYPE_STRING_EMPTY
+        self.TO = False
+        self.SELECTION = Network.TYPE_SELECTION_PLAYERS_ALL
         self.PROTOCOL = Network.PROTOCOL
 
     def encode(self):
-        arr = {"id": self.IDENTIFIER, "error": self.ERROR, "password": self.PASSWORD, "data": self.DATA, "reason": self.REASON, "chat": self.CHAT, "selection": self.SELECTION, "protocol": self.PROTOCOL}
         return json.dumps(arr).ljust(1024, ' ').encode()
 
 class DecodedPacket():
@@ -41,8 +41,9 @@ class DecodedPacket():
         return self.IDENTIFIER
 
     def get(self, index):
-        return self.DATA[index]
-
-    def getAll(self):
-        return self.DATA
+        try:
+            k = self.DATA[index]
+            return k
+        except KeyError:
+            return ""
 
