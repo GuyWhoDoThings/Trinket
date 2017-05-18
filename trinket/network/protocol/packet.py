@@ -14,6 +14,7 @@ $$$$$$$$\        $$\           $$\                  $$\
   (at your option) any later version.
 """
 import json
+import pprint
 from trinket.network.network import Network
 class Packet():
 
@@ -29,7 +30,6 @@ class Packet():
         self.PROTOCOL = Network.PROTOCOL
 
     def encode(self):
-        arr = {"id": self.IDENTIFIER, "error": self.ERROR, "password": self.PASSWORD, "data": self.DATA, "to": self.TO, "reason": self.REASON, "chat": self.CHAT, "selection": self.SELECTION, "protocol": self.PROTOCOL}
         return json.dumps(arr).ljust(1024, ' ').encode()
 
 class DecodedPacket():
@@ -42,9 +42,3 @@ class DecodedPacket():
         return self.IDENTIFIER
 
     def get(self, index):
-        try:
-            k = self.DATA[index]
-            return k
-        except KeyError:
-            return ""
-
