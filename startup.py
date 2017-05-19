@@ -1,5 +1,5 @@
 import sys, os
-os.chdir(os.path.realpath(sys.argv[0]).replace("\startup.py", ""))
+os.chdir(os.path.realpath(sys.argv[0]).replace(str(os.sep) + "startup.py", ""))
 from trinket.trinket import Trinket
 from trinket.utils.config import Config
 
