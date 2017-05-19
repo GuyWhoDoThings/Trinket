@@ -56,7 +56,7 @@ class TCPServerSocket():
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
                                 c.send(pk.encode())
                                 TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
-                            self.LAST_PACKET[str(pckt.get("serverId"))] = time.time()
+                            self.LAST_PACKET[str(serverId)] = time.time()
                             if pckt.getID() == Network.TYPE_PACKET_PING:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_PONG
