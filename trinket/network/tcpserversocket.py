@@ -142,7 +142,7 @@ class TCPServerSocket():
                             continue
                         else:
                             TrinketLogger.debug("Client " + str(conn.getpeername()) + " timed out")
-                            del self.CLIENTS[str(addr)]
+                            del self.CLIENTS[str(data["serverId"])]
 
                     if pwd == self.PASSWORD:
                         pk = Packet()
