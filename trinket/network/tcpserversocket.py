@@ -18,9 +18,11 @@ import logging
 import sys
 import socket
 import threading
+import time
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
+
 
 class TCPServerSocket():
 
@@ -54,6 +56,7 @@ class TCPServerSocket():
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
                                 c.send(pk.encode())
                                 TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
+                            self.LAST_PACKET[str(pckt.get("serverId"))] = time.time()
                             if pckt.getID() == Network.TYPE_PACKET_PING:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_PONG
@@ -128,13 +131,19 @@ class TCPServerSocket():
                 if pckt.getID() == Network.TYPE_PACKET_LOGIN:
                     pwd = pckt.get('password')
                     if data["serverId"] in self.CLIENTS:
-                        pk = Packet()
-                        pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
-                        pk.DATA = False
-                        pk.ERROR = Network.TYPE_ERROR_SERVER_ID
-                        conn.send(pk.encode())
-                        TrinketLogger.error("Connection " + str(addr) + " attempted to login with registered serverID")
-                        continue
+                        tm = time.time() - self.LAST_PACKET[str(pckt.get("serverId"))]
+                        if tm < 5:
+                            pk = Packet()
+                            pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
+                            pk.DATA = False
+                            pk.ERROR = Network.TYPE_ERROR_SERVER_ID
+                            conn.send(pk.encode())
+                            TrinketLogger.error("Connection " + str(addr) + " attempted to login with registered serverID")
+                            continue
+                        else:
+                            TrinketLogger.debug("Client " + str(conn.getpeername()) + " timed out")
+                            del self.CLIENTS[str(addr)]
+
                     if pwd == self.PASSWORD:
                         pk = Packet()
                         pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
@@ -148,6 +157,7 @@ class TCPServerSocket():
                         pk = Packet()
                         pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
                         conn.send(pk.encode())
+                        self.LAST_PACKET[str(pckt.get("serverId"))] = time.time()
                         continue
                     else:
                         pk = Packet()
@@ -167,6 +177,7 @@ class TCPServerSocket():
         self.PASSWORD = password
         self.CLIENTS = dict()
         self.INFO = dict()
+        self.LAST_PACKET = dict()
         self.LOGGER = logger
         self.ENABLED = True
         try:
