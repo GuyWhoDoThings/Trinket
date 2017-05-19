@@ -103,6 +103,11 @@ class TCPServerSocket():
                                     tmp.send(pk.encode())
                             elif pckt.getID() == Network.TYPE_PACKET_INFO_SEND:
                                 self.INFO[serverId] = pckt.get("data")
+                            elif pckt.getID() == Network.TYPE_PACKET_DATA_REQUEST:
+                                pk = Packet()
+                                pk.IDENTIFIER = Network.TYPE_PACKET_DATA_SEND
+                                pk.DATA = self.getClientList()
+                                c.send(pk.encode())
                         except socket.error:
                             continue
                 except RuntimeError:
