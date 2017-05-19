@@ -16,12 +16,14 @@ $$$$$$$$\        $$\           $$\                  $$\
 import os, sys
 import time
 import logging
+import socket
 
 from trinket.network.tcpserversocket import TCPServerSocket
 from trinket.threads.commandreader import CommandReader
 from trinket.utils.trinketlogger import TrinketLogger
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet
+
 
 class Trinket():
 
@@ -49,7 +51,7 @@ class Trinket():
             pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
             try:
                 c.send(pk.encode())
-            except c.error:
+            except socket.error:
                 continue
 
     def finish(self):
