@@ -50,7 +50,7 @@ class TCPServerSocket():
                                 continue
                             if len(j) != 1024:
                                 continue
-                            pckt = DecodedPacket(json.loads(j.strip()))
+                            pckt = DecodedPacket(json.loads(j.decode().strip()))
                             if pckt.get("protocol") != Network.PROTOCOL:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
@@ -126,7 +126,7 @@ class TCPServerSocket():
         while self.ENABLED:
             try:
                 conn, addr = self.s.accept()
-                data = json.loads(conn.recv(1024).strip())
+                data =  json.loads(conn.recv(1024).decode().strip())
                 pckt = DecodedPacket(data)
                 if pckt.getID() == Network.TYPE_PACKET_LOGIN:
                     pwd = pckt.get('password')
