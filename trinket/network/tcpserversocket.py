@@ -64,6 +64,7 @@ class TCPServerSocket():
                             elif pckt.getID() == Network.TYPE_PACKET_DUMMY:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
+                                pk.DATA = {"protocol": Network.PROTOCOL, "version": '1.0.0'}
                                 c.send(pk.encode())
                                 del pk
                                 pk = Packet()
