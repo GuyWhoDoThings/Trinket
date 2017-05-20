@@ -4,7 +4,10 @@ import socket
 
 import ipaddress
 
-class Utilities():
+class Utilities:
+
+    TYPE_JSON = 0
+    TYPE_MESSAGE = 1
 
     @staticmethod
     def mt_rand(low=0, high = sys.maxsize):

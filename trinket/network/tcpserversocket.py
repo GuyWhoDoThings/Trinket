@@ -19,9 +19,11 @@ import sys
 import socket
 import threading
 import time
+import pprint
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
+from trinket.utils.utils import Utilities
 
 
 class TCPServerSocket():
@@ -50,6 +52,7 @@ class TCPServerSocket():
                                 continue
                             if len(j) != 1024:
                                 continue
+
                             pckt = DecodedPacket(json.loads(j.decode().strip()))
                             if pckt.get("protocol") != Network.PROTOCOL:
                                 pk = Packet()
@@ -61,6 +64,23 @@ class TCPServerSocket():
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_PONG
                                 c.send(pk.encode())
+                                pprint.pprint("Received PING, sending PONG")
+                            elif pckt.getID() == Network.TYPE_PACKET_SERVER_INFORMATION:
+                                dataJson = json.loads(pckt.get("data"))
+                                if dataJson["type"] == Utilities.TYPE_JSON:
+                                    pprint.pprint(" ")
+                                    pprint.pprint("Online/MaxPlayers: " + str(dataJson["online"]) + "/" + str(
+                                        dataJson["maxplayers"]))
+                                    pprint.pprint("Motd: " + str(dataJson["motd"]))
+                                    pprint.pprint("ServerID: " + str(dataJson["serverId"]))
+                                else:
+                                    pprint.pprint(" ")
+                                    pprint.pprint(dataJson["message"])
+                                    continue
+
+
+
+                                continue
                             elif pckt.getID() == Network.TYPE_PACKET_DUMMY:
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
@@ -127,7 +147,8 @@ class TCPServerSocket():
         while self.ENABLED:
             try:
                 conn, addr = self.s.accept()
-                data =  json.loads(conn.recv(1024).decode().strip())
+                data = json.loads(conn.recv(1024).decode().strip())
+
                 pckt = DecodedPacket(data)
                 if pckt.getID() == Network.TYPE_PACKET_LOGIN:
                     pwd = pckt.get('password')
