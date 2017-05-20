@@ -60,10 +60,6 @@ class TCPServerSocket():
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
                                 pk.DATA = self.getInfo()
                                 c.send(pk.encode())
-                                del pk
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_INFO
-                                pk.DATA = self.getInfo()
                             elif pckt.getID() == Network.TYPE_PACKET_DISCONNECT:
                                 del self.CLIENTS[serverId]
                                 TrinketLogger.debug("Client " + str(c.getpeername()) + " disconnected")
