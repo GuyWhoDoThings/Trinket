@@ -19,26 +19,19 @@ import sys
 import socket
 import threading
 import time
-import pprint
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
-from trinket.utils.utils import Utilities
 
 
 class TCPServerSocket():
 
-    def getClientDataAll(self):
-        array = list()
-        for c in self.CLIENTS:
-            array.append(c)
-        return array
-
-    def getClientList(self):
-        array = dict()
-        for c in self.CLIENTS:
-            array[c] = self.INFO[c]
-        return array
+    def getInfo(self):
+        pcount = 0
+        for id in self.INFO:
+            info = self.INFO[id]
+            pcount += int(info["online"])
+        return {"protocol": Network.PROTOCOL, "version": '1.0.0', "players": str(pcount)}
 
     def clientlisten(self):
         while self.ENABLED:
@@ -59,37 +52,18 @@ class TCPServerSocket():
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
                                 c.send(pk.encode())
                                 TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
-                            self.LAST_PACKET[str(serverId)] = time.time()
-                            if pckt.getID() == Network.TYPE_PACKET_PING:
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_PONG
-                                c.send(pk.encode())
-                                pprint.pprint("Received PING, sending PONG")
                             elif pckt.getID() == Network.TYPE_PACKET_SERVER_INFORMATION:
-                                dataJson = json.loads(pckt.get("data"))
-                                if dataJson["type"] == Utilities.TYPE_JSON:
-                                    pprint.pprint(" ")
-                                    pprint.pprint("Online/MaxPlayers: " + str(dataJson["online"]) + "/" + str(
-                                        dataJson["maxplayers"]))
-                                    pprint.pprint("Motd: " + str(dataJson["motd"]))
-                                    pprint.pprint("ServerID: " + str(dataJson["serverId"]))
-                                else:
-                                    pprint.pprint(" ")
-                                    pprint.pprint(dataJson["message"])
-                                    continue
-
-
-
-                                continue
+                                self.INFO[serverId] = json.loads(pckt.get("data"))
                             elif pckt.getID() == Network.TYPE_PACKET_DUMMY:
+                                self.LAST_PACKET[str(serverId)] = time.time()
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
-                                pk.DATA = {"protocol": Network.PROTOCOL, "version": '1.0.0'}
+                                pk.DATA = self.getInfo()
                                 c.send(pk.encode())
                                 del pk
                                 pk = Packet()
                                 pk.IDENTIFIER = Network.TYPE_PACKET_INFO
-                                pk.DATA = self.getClientDataAll()
+                                pk.DATA = self.getInfo()
                             elif pckt.getID() == Network.TYPE_PACKET_DISCONNECT:
                                 del self.CLIENTS[serverId]
                                 TrinketLogger.debug("Client " + str(c.getpeername()) + " disconnected")
@@ -125,13 +99,6 @@ class TCPServerSocket():
                                         continue
                                     tmp = self.CLIENTS[t]
                                     tmp.send(pk.encode())
-                            elif pckt.getID() == Network.TYPE_PACKET_INFO_SEND:
-                                self.INFO[serverId] = pckt.get("data")
-                            elif pckt.getID() == Network.TYPE_PACKET_DATA_REQUEST:
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_DATA_SEND
-                                pk.DATA = self.getClientList()
-                                c.send(pk.encode())
                         except socket.error:
                             continue
                 except RuntimeError:
@@ -174,7 +141,7 @@ class TCPServerSocket():
                         conn.send(pk.encode())
                         self.CLIENTS[data["serverId"]] = conn
                         data = pckt.get("data")
-                        self.INFO[str(pckt.get("serverId"))] = data
+                        self.INFO[str(pckt.get("serverId"))] = {"online": 0}
                         TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
                         pk = Packet()
                         pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
