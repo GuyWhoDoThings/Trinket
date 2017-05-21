@@ -6,7 +6,7 @@ It's easy, just make sure you've got virtualenv and Python 3.5 then run the foll
 ```sh
 $ pip install virtualenv
 $ virtualenv -p /usr/bin/python .venv
-$ source ./venv/bin/activate
+$ source .venv/bin/activate
 $ pip install -r requirements.txt
 $ python startup.py
 $ deactivate
