@@ -8,7 +8,7 @@ $ pip install virtualenv
 $ virtualenv -p /usr/bin/python .venv
 $ source .venv/bin/activate
 $ pip install -r requirements.txt
-$ python startup.py
+$ python3 startup.py
 $ deactivate
 ```
 
