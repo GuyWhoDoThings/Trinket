@@ -26,6 +26,13 @@ from trinket.utils.trinketlogger import TrinketLogger
 
 class TCPServerSocket():
 
+    def getServerID(self, addr):
+        for serverid in self.CLIENTS:
+            conn = self.CLIENTS[serverid]
+            if conn.getpeername()[0] == addr:
+                return conn
+        return False
+
     def getInfo(self):
         pcount = 0
         for id in self.INFO:
@@ -53,7 +60,18 @@ class TCPServerSocket():
                                 c.send(pk.encode())
                                 TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
                             elif pckt.getID() == Network.TYPE_PACKET_SERVER_INFORMATION:
-                                self.INFO[serverId] = json.loads(pckt.get("data"))
+                                data = json.loads(pckt.get("data"))
+                                if data["type"] == Network.TYPE_ENTRY_INFORMATION:
+                                    self.INFO[serverId] = data
+                                    continue
+                                elif data["type"] == Network.TYPE_ENTRY_MESSAGE:
+                                    TrinketLogger.info(data["message"])
+                                elif data["type"] == Network.TYPE_ENTRY_TRANSFER:
+                                    server = self.getServerID(json.loads(pckt.DATA["data"])["to"])
+                                    pk = Packet()
+                                    pk.IDENTIFIER = Network.TYPE_PACKET_SERVER_INFORMATION
+                                    pk.DATA = json.dumps(data)
+                                    server.send(pk.encode())
                             elif pckt.getID() == Network.TYPE_PACKET_DUMMY:
                                 self.LAST_PACKET[str(serverId)] = time.time()
                                 pk = Packet()

@@ -17,7 +17,8 @@ import os, sys
 import time
 import logging
 import socket
-
+os.chdir(os.path.realpath(sys.argv[0]).replace(str(os.sep) + "startup.py", ""))
+sys.path.append(os.path.realpath(sys.argv[0]).replace(str(os.sep) + "startup.py", ""))
 from trinket.network.tcpserversocket import TCPServerSocket
 from trinket.threads.commandreader import CommandReader
 from trinket.utils.trinketlogger import TrinketLogger

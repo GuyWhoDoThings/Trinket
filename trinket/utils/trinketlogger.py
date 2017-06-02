@@ -14,30 +14,30 @@ $$$$$$$$\        $$\           $$\                  $$\
   (at your option) any later version.
 """
 from trinket.utils.color import Color
+from trinket.utils.utils import Utils
+
+
 class TrinketLogger:
 
     @staticmethod
     def log(msg, prefix, color, threadname):
-        print(color + "[" + threadname + "/" + prefix + "]: " + msg + Color.RESET)
+        print(Utils.format(color + "[" + threadname + "/" + prefix + "]: " + msg))
 
     @staticmethod
     def error(msg):
         TrinketLogger.log(msg, "ERROR", Color.RED, "Trinket")
 
-
     @staticmethod
     def warning(msg):
         TrinketLogger.log(msg, "WARNING", Color.YELLOW, "Trinket")
-
 
     @staticmethod
     def info(msg):
         TrinketLogger.log(msg, "INFO", "", "Trinket")
 
-
     @staticmethod
     def debug(msg):
-        TrinketLogger.log(msg, "DEBUG", Color.OKBLUE, "Trinket")
+        TrinketLogger.log(msg, "DEBUG", Color.GRAY, "Trinket")
 
     @staticmethod
     def typed(msg):

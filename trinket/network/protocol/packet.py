@@ -15,7 +15,9 @@ $$$$$$$$\        $$\           $$\                  $$\
 """
 import json
 from trinket.network.network import Network
-class Packet():
+
+
+class Packet:
 
     def __init__(self):
         self.IDENTIFIER = 0x001
@@ -32,7 +34,8 @@ class Packet():
         arr = {"id": self.IDENTIFIER, "error": self.ERROR, "password": self.PASSWORD, "data": self.DATA, "to": self.TO, "reason": self.REASON, "chat": self.CHAT, "selection": self.SELECTION, "protocol": self.PROTOCOL}
         return json.dumps(arr).ljust(1024, ' ').encode()
 
-class DecodedPacket():
+
+class DecodedPacket:
 
     def __init__(self, data):
         self.DATA = data
@@ -43,8 +46,6 @@ class DecodedPacket():
 
     def get(self, index):
         try:
-            k = self.DATA[index]
-            return k
+            return self.DATA[index]
         except KeyError:
             return ""
-

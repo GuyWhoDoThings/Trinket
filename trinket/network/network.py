@@ -13,12 +13,11 @@ $$$$$$$$\        $$\           $$\                  $$\
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 """
+
+
 class Network:
 
     TYPE_PACKET_UNKNOWN = 00
-
-    TYPE_PACKET_PING = "ping"
-    TYPE_PACKET_PONG = "pong"
 
     TYPE_PACKET_DUMMY = 1
 
@@ -50,5 +49,8 @@ class Network:
     TYPE_STRING_EMPTY = 11100111
     TYPE_DATA_EMPTY = 11100111
 
+    TYPE_ENTRY_INFORMATION = 0
+    TYPE_ENTRY_MESSAGE = 1
+    TYPE_ENTRY_TRANSFER = 2
 
     PROTOCOL = 160
