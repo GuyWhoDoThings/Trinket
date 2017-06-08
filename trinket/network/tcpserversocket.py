@@ -18,158 +18,57 @@ import logging
 import sys
 import socket
 import threading
-import time
 from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet, DecodedPacket
 from trinket.utils.trinketlogger import TrinketLogger
+from trinket.network.client import Client
 
 
-class TCPServerSocket():
+class TCPServerSocket:
 
-    def getServerID(self, addr):
+    def getserverid(self, addr):
         for serverid in self.CLIENTS:
             conn = self.CLIENTS[serverid]
             if conn.getpeername()[0] == addr:
                 return conn
         return False
 
-    def getInfo(self):
+    def getinfo(self):
         pcount = 0
-        for id in self.INFO:
-            info = self.INFO[id]
+        for identifier in self.INFO:
+            info = self.INFO[identifier]
             pcount += int(info["online"])
-        return {"protocol": Network.PROTOCOL, "version": '1.0.0', "players": str(pcount)}
-
-    def clientlisten(self):
-        while self.ENABLED:
-            try:
-                try:
-                    for serverId in self.CLIENTS:
-                        try:
-                            c = self.CLIENTS[serverId]
-                            j = c.recv(1024)
-                            if not j:
-                                continue
-                            if len(j) != 1024:
-                                continue
-
-                            pckt = DecodedPacket(json.loads(j.decode().strip()))
-                            if pckt.get("protocol") != Network.PROTOCOL:
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
-                                c.send(pk.encode())
-                                TrinketLogger.debug("Received packet from " + str(c.getpeername()) + " with unknown protocol")
-                            elif pckt.getID() == Network.TYPE_PACKET_SERVER_INFORMATION:
-                                data = json.loads(pckt.get("data"))
-                                if data["type"] == Network.TYPE_ENTRY_INFORMATION:
-                                    self.INFO[serverId] = data
-                                    continue
-                                elif data["type"] == Network.TYPE_ENTRY_MESSAGE:
-                                    TrinketLogger.info(data["message"])
-                                elif data["type"] == Network.TYPE_ENTRY_TRANSFER:
-                                    server = self.getServerID(json.loads(pckt.DATA["data"])["to"])
-                                    pk = Packet()
-                                    pk.IDENTIFIER = Network.TYPE_PACKET_SERVER_INFORMATION
-                                    pk.DATA = json.dumps(data)
-                                    server.send(pk.encode())
-                            elif pckt.getID() == Network.TYPE_PACKET_DUMMY:
-                                self.LAST_PACKET[str(serverId)] = time.time()
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
-                                pk.DATA = self.getInfo()
-                                c.send(pk.encode())
-                            elif pckt.getID() == Network.TYPE_PACKET_DISCONNECT:
-                                del self.CLIENTS[serverId]
-                                TrinketLogger.debug("Client " + str(c.getpeername()) + " disconnected")
-                            elif pckt.getID() == Network.TYPE_PACKET_COMMAND:
-                                cmd = pckt.get("data")
-                                to = pckt.get("to")
-                                if to in self.CLIENTS:
-                                    pk = Packet()
-                                    pk.IDENTIFIER = Network.TYPE_PACKET_COMMAND_EXECUTE
-                                    pk.DATA = cmd
-                                    self.CLIENTS[to].send(pk.encode())
-                                else:
-                                    continue
-                            elif pckt.getID() == Network.TYPE_PACKET_COMMAND_EXECUTE:
-                                continue
-                            elif pckt.getID() == Network.TYPE_PACKET_LOGIN:
-                                continue
-                            elif pckt.getID() == Network.TYPE_PACKET_CHAT:
-                                if pckt.get("data") == Network.TYPE_STRING_EMPTY:
-                                    continue
-                                if str(pckt.get("data")) == "":
-                                    continue
-                                pk = Packet()
-                                pk.IDENTIFIER = Network.TYPE_PACKET_CHAT
-                                pk.DATA = pckt.get("data")
-                                if pckt.get("to") in self.CLIENTS:
-                                    tmp = self.CLIENTS[pckt.get("to")]
-                                    tmp.send(pk.encode())
-                                    continue
-                                TrinketLogger.info(str(pckt.get("data")))
-                                for t in self.CLIENTS:
-                                    if t == serverId:
-                                        continue
-                                    tmp = self.CLIENTS[t]
-                                    tmp.send(pk.encode())
-                        except socket.error:
-                            continue
-                except RuntimeError:
-                    continue
-            except (KeyboardInterrupt, SystemExit):
-                return
-
-
-    def setEnabled(self, value):
-        self.ENABLED = value
+        return json.dumps({"protocol": Network.PROTOCOL, "version": '1.0.0', "players": int(pcount)})
 
     def listen(self):
-        while self.ENABLED:
+        while True:
             try:
                 conn, addr = self.s.accept()
-                data = json.loads(conn.recv(1024).decode().strip())
+                data = json.loads(conn.recv(Network.BUFFER).decode().strip())
 
                 pckt = DecodedPacket(data)
-                if pckt.getID() == Network.TYPE_PACKET_LOGIN:
-                    pwd = pckt.get('password')
-                    if data["serverId"] in self.CLIENTS:
-                        tm = time.time() - self.LAST_PACKET[str(pckt.get("serverId"))]
-                        if tm < 5:
-                            pk = Packet()
-                            pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
-                            pk.DATA = False
-                            pk.ERROR = Network.TYPE_ERROR_SERVER_ID
-                            conn.send(pk.encode())
-                            TrinketLogger.error("Connection " + str(addr) + " attempted to login with registered serverID")
-                            continue
-                        else:
-                            TrinketLogger.debug("Client " + str(conn.getpeername()) + " timed out")
-                            del self.CLIENTS[str(data["serverId"])]
-
-                    if pwd == self.PASSWORD:
-                        pk = Packet()
-                        pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
-                        pk.DATA = True
-                        pk.ERROR = Network.TYPE_ERROR_EMPTY
-                        conn.send(pk.encode())
-                        self.CLIENTS[data["serverId"]] = conn
-                        data = pckt.get("data")
-                        self.INFO[str(pckt.get("serverId"))] = {"online": 0}
-                        TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
-                        pk = Packet()
-                        pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
-                        conn.send(pk.encode())
-                        self.LAST_PACKET[str(pckt.get("serverId"))] = time.time()
-                        continue
-                    else:
-                        pk = Packet()
-                        pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
-                        pk.DATA = False
-                        pk.ERROR = Network.TYPE_ERROR_INVALID_PASSWORD
-                        conn.send(pk.encode())
-                        TrinketLogger.debug("Connection from " + str(addr) + " refused, Invalid Password")
-                        continue
+                pwd = pckt.get("password")
+                if pwd == self.PASSWORD:
+                    pk = Packet()
+                    pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
+                    pk.DATA = True
+                    pk.ERROR = Network.TYPE_ERROR_EMPTY
+                    conn.send(pk.encode())
+                    self.CLIENTS[data["serverId"]] = Client(conn, data["serverId"], self)
+                    self.INFO[str(pckt.get("serverId"))] = {"online": 0}
+                    TrinketLogger.debug("Connection from " + str(addr) + " with ID " + str(pckt.get("serverId")) + " accepted")
+                    pk = Packet()
+                    pk.IDENTIFIER = Network.TYPE_PACKET_DUMMY
+                    conn.send(pk.encode())
+                    continue
+                else:
+                    pk = Packet()
+                    pk.IDENTIFIER = Network.TYPE_PACKET_LOGIN
+                    pk.DATA = False
+                    pk.ERROR = Network.TYPE_ERROR_INVALID_PASSWORD
+                    conn.send(pk.encode())
+                    TrinketLogger.debug("Connection from " + str(addr) + " refused, Invalid Password")
+                    continue
             except (KeyboardInterrupt, SystemExit):
                 return
 
@@ -180,9 +79,7 @@ class TCPServerSocket():
         self.PASSWORD = password
         self.CLIENTS = dict()
         self.INFO = dict()
-        self.LAST_PACKET = dict()
         self.LOGGER = logger
-        self.ENABLED = True
         try:
             self.s.bind((self.HOST, self.PORT))
         except self.s.error:
@@ -193,15 +90,3 @@ class TCPServerSocket():
             self.s.listen(5)
             TrinketLogger.info("Trinket running on " + self.HOST + ":" + str(self.PORT))
             threading.Thread(target=self.listen, daemon=True).start()
-            threading.Thread(target=self.clientlisten, daemon=True).start()
-
-    def stop(self):
-        for sid in self.CLIENTS:
-            try:
-                c = self.CLIENTS[sid]
-                pk = Packet()
-                pk.IDENTIFIER = Network.TYPE_PACKET_DISCONNECT
-                pk.REASON = Network.TYPE_DISCONNECT_FORCED
-                c.send(pk.encode())
-            except RuntimeError:
-                continue

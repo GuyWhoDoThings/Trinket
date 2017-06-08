@@ -13,7 +13,8 @@ $$$$$$$$\        $$\           $$\                  $$\
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 """
-import os, sys
+import os
+import sys
 import time
 import logging
 import socket
@@ -26,7 +27,7 @@ from trinket.network.network import Network
 from trinket.network.protocol.packet import Packet
 
 
-class Trinket():
+class Trinket:
 
     def setEnabled(self, bool):
         self.ENABLED = bool
@@ -36,9 +37,7 @@ class Trinket():
             continue
 
     def start(self):
-        dir = os.path.dirname(os.path.realpath(sys.argv[0]))
-
-        TrinketLogger.info("Trinket Server v" + self.VERSION + " protocol version " + self.PROTOCOL_VERSION)
+        TrinketLogger.info("Trinket Server v" + self.VERSION + " protocol version " + str(Network.PROTOCOL))
         TrinketLogger.info("Attempting to open server on " + self.HOST + ":" + str(self.PORT))
 
         self.SOCKET = TCPServerSocket(self.HOST, self.PORT, self.LOGGER, self.PASSWORD)
@@ -67,7 +66,6 @@ class Trinket():
         self.PASSWORD = password
 
         self.VERSION = '0.1.7'
-        self.PROTOCOL_VERSION = '1.0.0'
 
         self.CLIENTS = list()
         self.THREADS = list()
@@ -79,4 +77,3 @@ class Trinket():
 
         self.LOGGER = logging.Logger
         self.start()
-
