@@ -1,6 +1,9 @@
 # Trinket
 Trinket is a multi-server management system for MCPE servers.
 
+### Supported Platforms
+Currently Trinket supports: Windows, Linux
+
 ### Installation
 It's easy, just make sure you've got virtualenv, git, and Python 3.4 then run the following
 ```sh
