@@ -7,10 +7,10 @@ It's easy, just make sure you've got virtualenv, git, and Python 3.4 then run th
 $ pip install virtualenv
 $ virtualenv -p /usr/bin/python .venv
 $ source .venv/bin/activate
-$ pip install -r requirements.txt
 $ mkdir trinket
 $ cd trinket/
 $ git clone https://github.com/TransendStudios/Trinket.git
+$ pip install -r requirements.txt
 $ python3 startup.py
 $ deactivate
 ```
