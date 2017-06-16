@@ -13,10 +13,12 @@ $$$$$$$$\        $$\           $$\                  $$\
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
 """
-import os, sys
+import sys
 import threading
 from trinket.utils.trinketlogger import TrinketLogger
-class CommandReader():
+
+
+class CommandReader:
 
     def __init__(self, trinket):
         self.TRINKET = trinket
@@ -35,4 +37,3 @@ class CommandReader():
                     continue
             except (KeyboardInterrupt, SystemExit):
                 return
-

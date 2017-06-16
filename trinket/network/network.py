@@ -54,3 +54,5 @@ class Network:
     TYPE_ENTRY_TRANSFER = 2
 
     PROTOCOL = 160
+
+    BUFFER = 1024

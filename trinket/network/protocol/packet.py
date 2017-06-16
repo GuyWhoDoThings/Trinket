@@ -16,7 +16,6 @@ $$$$$$$$\        $$\           $$\                  $$\
 import json
 from trinket.network.network import Network
 
-
 class Packet:
 
     def __init__(self):
@@ -26,7 +25,7 @@ class Packet:
         self.DATA = Network.TYPE_DATA_EMPTY
         self.REASON = Network.TYPE_DATA_EMPTY
         self.CHAT = Network.TYPE_STRING_EMPTY
-        self.TO = False
+        self.TO = Network.TYPE_STRING_EMPTY
         self.SELECTION = Network.TYPE_SELECTION_PLAYERS_ALL
         self.PROTOCOL = Network.PROTOCOL
 
@@ -40,6 +39,8 @@ class DecodedPacket:
     def __init__(self, data):
         self.DATA = data
         self.IDENTIFIER = data["id"]
+        for index, key in data.items():
+            super().__setattr__(index, key)
 
     def getID(self):
         return self.IDENTIFIER

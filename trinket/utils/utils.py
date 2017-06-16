@@ -1,5 +1,3 @@
-import random
-import sys
 import platform
 from trinket.utils.color import Color
 
@@ -8,7 +6,7 @@ class Utils:
 
     @staticmethod
     def format(msg):
-        if Utils.getOS() == "Windows":
+        if Utils.getos() == "Windows":
             msg = msg.replace(Color.BLACK, "\033[0;30m")
             msg = msg.replace(Color.DARK_BLUE, "")
             msg = msg.replace(Color.DARK_GREEN, "\033[0;32m")
@@ -32,7 +30,7 @@ class Utils:
             msg = msg.replace(Color.ITALIC, "")
             msg = msg.replace(Color.RESET, "\033[0;0m")
             return msg + "\033[0;0m"
-        elif Utils.getOS() == "Linux":
+        elif Utils.getos() == "Linux":
             msg = msg.replace(Color.BLACK, "")
             msg = msg.replace(Color.DARK_BLUE, "")
             msg = msg.replace(Color.DARK_GREEN, "")
@@ -57,11 +55,6 @@ class Utils:
             msg = msg.replace(Color.RESET, "")
             return msg
 
-
     @staticmethod
-    def mt_rand(low=0, high = sys.maxsize):
-        return random.randint(low, high)
-
-    @staticmethod
-    def getOS():
+    def getos():
         return platform.system()
